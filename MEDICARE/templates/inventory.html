@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory | MediCare+</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary-color: #0d6efd; --sidebar-width: 260px; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            /* MEDICAL BACKGROUND IMAGE */
+            background: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Overlay to make text readable */
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(240, 244, 248, 0.85); /* Light Blue-White Tint */
+            z-index: -1;
+        }
+
+        /* Sidebar with Glass Effect */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            position: fixed; height: 100vh; border-right: 1px solid rgba(0,0,0,0.1); 
+        }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .nav-link { color: #555; padding: 14px 25px; border-radius: 0 50px 50px 0; margin-bottom: 5px; }
+        .nav-link.active { background: linear-gradient(45deg, var(--primary-color), #4facfe); color: white; }
+        
+        /* Cards */
+        .card-custom { 
+            border:none; border-radius:20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            background: white; 
+        }
+        
+        .btn-custom { background: linear-gradient(45deg, var(--primary-color), #00d2ff); border:none; color:white; border-radius:50px; padding: 10px 25px; font-weight:600; }
+        .product-row:hover { background-color: #f8f9fa; cursor: pointer; }
+
+        /* --- INPUT FIELD STYLING (High Visibility) --- */
+        .form-control-custom {
+            background-color: #ffffff;
+            border: 1px solid #ced4da; 
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 1rem;
+        }
+        .form-control-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+        }
+        .modal-label {
+            font-weight: 600; color: #495057; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<aside class="sidebar d-flex flex-column py-4">
+    <div class="px-4 mb-5"><h3 class="fw-bold text-primary">MediCare+</h3></div>
+    <ul class="nav flex-column pe-3">
+        <li class="nav-item"><a href="{% url 'dashboard' %}" class="nav-link"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
+        <li class="nav-item"><a href="{% url 'inventory' %}" class="nav-link active"><i class="fa-solid fa-box-open me-2"></i> Inventory</a></li>
+        <li class="nav-item"><a href="{% url 'report' %}" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
+    </ul>
+    <div class="mt-auto px-4">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 rounded-pill"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </div>
+</aside>
+
+<main class="main-content">
+    
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold">Inventory</h2>
+            {% if search_query %}
+                <p class="text-muted">Search results for: <strong>"{{ search_query }}"</strong> <a href="{% url 'inventory' %}" class="text-danger ms-2 text-decoration-none">Clear</a></p>
+            {% else %}
+                <p class="text-muted">Manage your stock details.</p>
+            {% endif %}
+        </div>
+        
+        <div class="d-flex gap-2">
+            <form action="{% url 'inventory' %}" method="GET" class="d-flex me-2">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-0 shadow-sm"><i class="fa-solid fa-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-0 shadow-sm" placeholder="Search..." value="{{ search_query|default:'' }}">
+                    <button type="submit" class="btn btn-primary shadow-sm">Search</button>
+                </div>
+            </form>
+            
+            <button class="btn btn-dark rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="fa-solid fa-file-import me-2"></i> Import
+            </button>
+            <button class="btn btn-custom rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fa-solid fa-plus me-2"></i> Add Product
+            </button>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm border-0 bg-white">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card-custom p-4 text-center">
+                <h3 class="fw-bold text-primary">{{ totalProducts }}</h3>
+                <small class="text-muted">Total Items</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'inventory' %}?filter=low_stock" class="card-custom p-4 text-center d-block text-decoration-none text-dark">
+                <h3 class="fw-bold text-danger">{{ lowStock }}</h3>
+                <small class="text-muted">Low Stock</small>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{% url 'inventory' %}?filter=out_of_stock" class="card-custom p-4 text-center d-block text-decoration-none text-dark">
+                <h3 class="fw-bold text-secondary">{{ outOfStock }}</h3>
+                <small class="text-muted">Out of Stock</small>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <div class="card-custom p-4 text-center">
+                <h3 class="fw-bold text-success">₹{{ inventoryValue|floatformat:2 }}</h3>
+                <small class="text-muted">Total Value</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-custom p-0 overflow-hidden">
+        <div class="p-4 border-bottom"><h5 class="fw-bold m-0">Stock List</h5></div>
+        <table class="table align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Product Name</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                    <th>Added On</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in products %}
+                <tr class="product-row" onclick="alert('Item: {{ p.name }}\nPrice: ₹{{ p.price }}\nStock: {{ p.quantity }}')">
+                    <td class="ps-4 fw-bold">{{ p.name }}</td>
+                    <td>₹{{ p.price|floatformat:2 }}</td>
+                    <td>{{ p.quantity }}</td>
+                    <td>
+                        {% if p.quantity == 0 %} <span class="badge bg-danger">Out of Stock</span>
+                        {% elif p.quantity < 10 %} <span class="badge bg-warning text-dark">Low Stock</span>
+                        {% else %} <span class="badge bg-success">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ p.added_date|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-5 text-muted">No products found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom pb-3">
+                <h5 class="modal-title fw-bold text-primary"><i class="fa-solid fa-capsules me-2"></i> Add Medicine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form action="{% url 'add_product' %}" method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="modal-label">Medicine Name</label>
+                        <input type="text" name="name" class="form-control form-control-custom" placeholder="e.g. Paracetamol 500mg" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="modal-label">Price (₹)</label>
+                            <input type="number" step="0.01" name="price" class="form-control form-control-custom" placeholder="0.00" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="modal-label">Quantity</label>
+                            <input type="number" name="quantity" class="form-control form-control-custom" placeholder="0" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm mt-2">
+                        <i class="fa-solid fa-check me-2"></i> Save Product
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom pb-3">
+                <h5 class="modal-title fw-bold text-dark"><i class="fa-solid fa-cloud-arrow-up me-2"></i> Import Inventory</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted small mb-3">
+                    Upload <strong>CSV</strong> or <strong>Excel</strong>. Required Columns: 
+                    <span class="badge bg-secondary">name</span> <span class="badge bg-secondary">price</span> <span class="badge bg-secondary">quantity</span>
+                </p>
+                <form action="{% url 'upload_inventory' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="modal-label">Select File</label>
+                        <input type="file" name="file" class="form-control form-control-custom" required accept=".csv, .xlsx">
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold shadow-sm">
+                        Upload File
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

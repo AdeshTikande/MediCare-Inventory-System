@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reports | MediCare+</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary-color: #0d6efd; --sidebar-width: 260px; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            /* MEDICAL BACKGROUND */
+            background: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Overlay */
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(240, 244, 248, 0.85);
+            z-index: -1;
+        }
+
+        /* Sidebar Glass */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            position: fixed; height: 100vh; border-right: 1px solid rgba(0,0,0,0.1); 
+        }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .nav-link { color: #555; padding: 14px 25px; border-radius: 0 50px 50px 0; margin-bottom: 5px; }
+        .nav-link.active { background: linear-gradient(45deg, var(--primary-color), #4facfe); color: white; }
+        
+        /* Glass Cards */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            border: none; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+
+        /* Export Button Cards */
+        .export-card {
+            background: white; border-radius: 15px; padding: 25px; text-align: center;
+            border: 1px solid rgba(0,0,0,0.05); transition: all 0.3s; cursor: pointer;
+            text-decoration: none; display: block; color: inherit;
+        }
+        .export-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(13, 110, 253, 0.15);
+        }
+        .icon-box {
+            width: 70px; height: 70px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.8rem; margin: 0 auto 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<aside class="sidebar d-flex flex-column py-4">
+    <div class="px-4 mb-5"><h3 class="fw-bold text-primary">MediCare+</h3></div>
+    <ul class="nav flex-column pe-3">
+        <li class="nav-item"><a href="{% url 'dashboard' %}" class="nav-link"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
+        <li class="nav-item"><a href="{% url 'inventory' %}" class="nav-link"><i class="fa-solid fa-box-open me-2"></i> Inventory</a></li>
+        <li class="nav-item"><a href="{% url 'report' %}" class="nav-link active"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
+    </ul>
+    <div class="mt-auto px-4">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 rounded-pill"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </div>
+</aside>
+
+<main class="main-content">
+    
+    <header class="mb-5 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold">Financial Reports</h2>
+            <p class="text-muted">Track your revenue and export data.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill shadow-sm" onclick="window.print()">
+            <i class="fa-solid fa-print me-2"></i> Print Page
+        </button>
+    </header>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card p-4 text-center">
+                <p class="text-muted text-uppercase mb-2 fw-bold small">Today's Revenue</p>
+                <h2 class="fw-bold text-success mb-0">₹{{ todayRevenue|floatformat:2 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card p-4 text-center">
+                <p class="text-muted text-uppercase mb-2 fw-bold small">This Month</p>
+                <h2 class="fw-bold text-primary mb-0">₹{{ monthRevenue|floatformat:2 }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card p-4 text-center">
+                <p class="text-muted text-uppercase mb-2 fw-bold small">This Year</p>
+                <h2 class="fw-bold text-dark mb-0">₹{{ yearRevenue|floatformat:2 }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="fw-bold mb-4 ps-1">Download Reports</h5>
+    <div class="row g-4">
+        
+        <div class="col-md-4">
+            <a href="{% url 'export_pdf' 'day' %}" class="export-card">
+                <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <h5 class="fw-bold">Daily Report</h5>
+                <p class="text-muted small mb-0">Download sales data for today.</p>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'export_pdf' 'month' %}" class="export-card">
+                <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                    <i class="fa-regular fa-file-lines"></i>
+                </div>
+                <h5 class="fw-bold">Monthly Report</h5>
+                <p class="text-muted small mb-0">Summary of sales this month.</p>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'export_pdf' 'year' %}" class="export-card">
+                <div class="icon-box bg-success bg-opacity-10 text-success">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <h5 class="fw-bold">Annual Report</h5>
+                <p class="text-muted small mb-0">Complete financial overview.</p>
+            </a>
+        </div>
+
+    </div>
+
+    <div class="mt-5 p-4 rounded-4 bg-white border border-light shadow-sm">
+        <div class="d-flex align-items-start gap-3">
+            <i class="fa-solid fa-circle-info text-primary mt-1"></i>
+            <div>
+                <h6 class="fw-bold">Note on Reporting</h6>
+                <p class="text-muted small mb-0">
+                    Revenue is calculated based on completed transactions. 
+                    PDF reports include itemized lists of all sales for the selected period. 
+                    If you need custom dates, please contact the system administrator.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

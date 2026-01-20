@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | MediCare+</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary-color: #0d6efd; --sidebar-width: 260px; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            /* PROFESSIONAL MEDICAL BACKGROUND */
+            background: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Overlay to keep text readable */
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(240, 244, 248, 0.85); /* Light Blue-White Tint */
+            z-index: -1;
+        }
+
+        /* Sidebar with Glass Effect */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            position: fixed; height: 100vh; border-right: 1px solid rgba(0,0,0,0.1); 
+        }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .nav-link { color: #555; padding: 14px 25px; border-radius: 0 50px 50px 0; margin-bottom: 5px; }
+        .nav-link.active { background: linear-gradient(45deg, var(--primary-color), #4facfe); color: white; }
+        
+        /* Glass Cards */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.9); /* Slightly transparent */
+            backdrop-filter: blur(5px);
+            border: none; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+            text-decoration: none; color: inherit; display: block;
+        }
+        .stat-card:hover { transform: translateY(-5px); cursor: pointer; box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+        
+        .icon-circle { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; opacity: 0.2; }
+        .btn-custom { background: linear-gradient(45deg, var(--primary-color), #00d2ff); border:none; color:white; border-radius:50px; font-weight:600; }
+        
+        /* Better Inputs for Quick Sell */
+        .form-control-custom {
+            background-color: #f8f9fa; border: 1px solid #ced4da; border-radius: 10px; padding: 10px;
+        }
+        .form-control-custom:focus {
+            border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-overlay"></div>
+
+<aside class="sidebar d-flex flex-column py-4">
+    <div class="px-4 mb-5"><h3 class="fw-bold text-primary">MediCare+</h3></div>
+    <ul class="nav flex-column pe-3">
+        <li class="nav-item"><a href="{% url 'dashboard' %}" class="nav-link active"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
+        <li class="nav-item"><a href="{% url 'inventory' %}" class="nav-link"><i class="fa-solid fa-box-open me-2"></i> Inventory</a></li>
+        <li class="nav-item"><a href="{% url 'report' %}" class="nav-link"><i class="fa-solid fa-file-invoice me-2"></i> Reports</a></li>
+    </ul>
+    <div class="mt-auto px-4">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 rounded-pill"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
+    </div>
+</aside>
+
+<main class="main-content">
+    <header class="mb-5 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold">Dashboard</h2>
+            <p class="text-muted">Welcome back, {{ request.user.username }}!</p>
+        </div>
+        <span class="badge bg-white text-dark shadow-sm p-3 rounded-pill">
+            <i class="fa-regular fa-calendar me-2"></i> {% now "l, d F Y" %}
+        </span>
+    </header>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} shadow-sm border-0 alert-dismissible fade show bg-white">
+                {% if message.tags == 'error' %}<i class="fa-solid fa-circle-exclamation me-2 text-danger"></i>{% else %}<i class="fa-solid fa-check-circle me-2 text-success"></i>{% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a href="{% url 'report' %}" class="stat-card p-4 d-flex align-items-center justify-content-between">
+                <div><h6 class="text-muted text-uppercase mb-2">Total Revenue</h6><h2 class="fw-bold mb-0">₹{{ total_sales|floatformat:2 }}</h2></div>
+                <div class="icon-circle bg-primary text-primary"><i class="fa-solid fa-wallet"></i></div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'inventory' %}" class="stat-card p-4 d-flex align-items-center justify-content-between">
+                <div><h6 class="text-muted text-uppercase mb-2">Today's Sales</h6><h2 class="fw-bold mb-0">₹{{ today_sales|floatformat:2 }}</h2></div>
+                <div class="icon-circle bg-success text-success"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'inventory' %}?filter=low_stock" class="stat-card p-4 d-flex align-items-center justify-content-between border border-danger">
+                <div><h6 class="text-muted text-uppercase mb-2">Low Stock Alerts</h6><h2 class="fw-bold text-danger mb-0">{{ low_stock }}</h2></div>
+                <div class="icon-circle bg-danger text-danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            </a>
+        </div>
+    </div>
+
+    <div class="stat-card p-4 mb-4" style="cursor: default;">
+        <h5 class="fw-bold mb-4"><i class="fa-solid fa-cash-register me-2 text-primary"></i> Quick Sale Terminal</h5>
+        <form action="{% url 'sell_product' %}" method="POST" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-5">
+                <select name="product_id" class="form-select form-control-custom" required>
+                    <option value="" selected disabled>Select Medicine...</option>
+                    {% for p in products %}
+                        <option value="{{ p.id }}">{{ p.name }} (Stock: {{ p.quantity }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="qty" class="form-control form-control-custom" placeholder="Qty" value="1" min="1" required>
+            </div>
+            <div class="col-md-3">
+                <select name="payment" class="form-select form-control-custom">
+                    <option>Cash</option><option>UPI</option><option>Card</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-custom w-100 shadow-sm">Process Sale</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="stat-card p-0" style="cursor: default;">
+        <div class="p-4 border-bottom"><h5 class="fw-bold m-0">Recent Transactions</h5></div>
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr><th class="ps-4">Time</th><th>Product</th><th>Qty</th><th>Total</th><th>Method</th></tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td class="ps-4 text-muted">{{ t.date|date:"H:i" }}</td>
+                    <td class="fw-bold">{{ t.product.name }}</td>
+                    <td>{{ t.quantity }}</td>
+                    <td class="text-success fw-bold">₹{{ t.amount|floatformat:2 }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ t.payment_method }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4 text-muted">No transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
