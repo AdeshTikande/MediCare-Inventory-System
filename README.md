@@ -5,6 +5,12 @@ Medicare+ is a web-based Medical Inventory Management System developed to effici
 
 This project is developed using **Django** as the backend framework, while **HTML, CSS, and JavaScript** are used for designing a responsive and interactive frontend. The application demonstrates full-stack web development concepts, including database operations, authentication, and inventory management.
 
+# also i had deploy the site on pythonanywhere.com 
+we can check by https://adeshtikande.pythonanywhere.com
+or 
+https://adeshtikande.pythonanywhere.com/login/
+username: admin
+password: admin123
 ---
 
 ## Technologies Used
